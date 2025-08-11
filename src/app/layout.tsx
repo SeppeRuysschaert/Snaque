@@ -24,10 +24,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+    <html lang="nl" className="h-full">
+      <body className="min-h-screen bg-[#0b1217] text-slate-100 antialiased">
+        {/* full-bleed achtergrondlagen */}
+        <div className="fixed inset-0 -z-10 bg-[#0b1217]" />
+        <div
+          className="pointer-events-none fixed inset-0 -z-10
+                        bg-[radial-gradient(1200px_600px_at_50%_-100px,rgba(56,189,248,0.08),transparent)]"
+        />
+        {/* zachte vignet zodat container loskomt van de randen */}
+        <div
+          className="pointer-events-none fixed inset-0 -z-10
+                        bg-[linear-gradient(to_bottom,transparent,rgba(2,6,12,0.4))]"
+        />
         <Navbar />
         {children}
       </body>

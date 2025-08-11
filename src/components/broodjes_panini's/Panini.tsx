@@ -1,4 +1,5 @@
 import { tagClass, iconFor } from "@/functions";
+
 export default function Panini({
   item,
   formatPrice,
@@ -8,11 +9,18 @@ export default function Panini({
 }) {
   return (
     <li
-      className="group relative rounded-2xl border border-amber-200/10 bg-amber-50/[0.04] p-4 shadow-sm transition hover:border-amber-200/20 hover:bg-amber-50/[0.08]"
+      className="
+        group relative rounded-2xl
+        border border-amber-200/15
+        bg-neutral-900/60 md:bg-amber-50/[0.06]
+        p-4 shadow-sm transition
+        hover:border-amber-200/25
+        hover:bg-neutral-900/70 md:hover:bg-amber-50/[0.12]
+      "
       style={{
-        // grill-streepjes heel subtiel
+        // subtiele 'grill' streepjes — extra zacht zodat het op Safari niet uitwast
         backgroundImage:
-          "repeating-linear-gradient(45deg, rgba(255,255,255,0.06) 0 6px, rgba(255,255,255,0) 6px 12px)",
+          "repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0 6px, rgba(255,255,255,0) 6px 12px)",
         backgroundBlendMode: "overlay",
       }}
     >
@@ -23,7 +31,7 @@ export default function Panini({
         <h3 className="text-lg font-medium leading-tight text-slate-100">
           {item.name}
         </h3>
-        <div className="rounded-xl bg-amber-400/15 px-2 py-1 text-sm font-semibold text-amber-100 ring-1 ring-amber-300/20">
+        <div className="rounded-xl bg-neutral-900/60 md:bg-amber-400/15 px-2 py-1 text-sm font-semibold text-amber-100 ring-1 ring-amber-300/20">
           {formatPrice(item.price)}
         </div>
       </div>
