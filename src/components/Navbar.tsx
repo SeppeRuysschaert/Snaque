@@ -2,36 +2,21 @@
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { readCart, countItems, CART_KEY } from "@/lib/cart";
 
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
-  const [cartCount, setCartCount] = useState(0);
+  // 👉 vervang dit door jouw echte aantal
+  const cartCount = 0;
 
   useEffect(() => setOpen(false), [pathname]);
   useEffect(() => {
-  if (typeof window === "undefined") return;
-  // init
-  setCartCount(countItems());
-  // updates vanuit de app
-  const onUpdate = (e: Event) => {
-    const ce = e as CustomEvent<{ count: number }>;
-    if (ce.detail?.count != null) setCartCount(ce.detail.count);
-  };
-  // updates vanuit andere tabs/vensters
-  const onStorage = (e: StorageEvent) => {
-    if (e.key === CART_KEY) setCartCount(countItems());
-  };
-  window.addEventListener("cart:updated", onUpdate as EventListener);
-  window.addEventListener("storage", onStorage);
-  return () => {
-    window.removeEventListener("cart:updated", onUpdate as EventListener);
-    window.removeEventListener("storage", onStorage);
-  };
-}, []);
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const links = [
     { href: "/broodjes", label: "Broodjes" },
@@ -47,8 +32,8 @@ export default function Navbar() {
 
   return (
     <nav className="bg-gray-800/95 backdrop-blur px-4 md:px-8 py-3 shadow-md">
-      {/* GRID: mobiel = [logo | spacer | icons], desktop = [links | menu | icons] */}
-      <div className="mx-auto max-w-6xl grid grid-cols-[auto_1fr_auto] md:grid-cols-[1fr_auto_1fr] items-center">
+      {/* GRID: [links | midden | rechts] */}
+      <div className="mx-auto max-w-6xl grid grid-cols-[1fr_auto_1fr] items-center">
         {/* LINKS: logo + naam */}
         <div className="flex items-center gap-3 justify-self-start">
           <Image
@@ -67,7 +52,7 @@ export default function Navbar() {
           </h1>
         </div>
 
-        {/* MIDDEN: desktop menu (gecentreerd, verborgen op mobiel) */}
+        {/* MIDDEN: desktop menu (gecentreerd) */}
         <ul className="hidden md:flex gap-6 text-sm md:text-base font-medium justify-self-center">
           {links.map((l) => {
             const active = pathname === l.href;
@@ -88,8 +73,9 @@ export default function Navbar() {
           })}
         </ul>
 
-        {/* RECHTS: winkelmandje + hamburger (mobiel) */}
+        {/* RECHTS: winkelmandje + Contact + hamburger (mobiel) */}
         <div className="flex items-center gap-2 justify-self-end">
+          {/* Cart */}
           <button
             type="button"
             onClick={() => go("/cart")}
@@ -105,6 +91,15 @@ export default function Navbar() {
                 {cartCount}
               </span>
             )}
+          </button>
+
+          {/* 👉 NIEUW: Contact rechts van het winkelmandje (desktop) */}
+          <button
+            type="button"
+            onClick={() => go("/contact")}
+            className="hidden md:inline-flex items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-gray-200 hover:text-white hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+          >
+            Contact
           </button>
 
           {/* Mobile hamburger */}
@@ -147,12 +142,22 @@ export default function Navbar() {
                 </li>
               );
             })}
+            {/* Winkelmandje in mobile menu */}
             <li>
               <button
                 onClick={() => go("/cart")}
                 className="w-full text-left px-3 py-2 rounded-lg transition-colors hover:bg-white/10 hover:text-white"
               >
                 🛒 Winkelmandje
+              </button>
+            </li>
+            {/* 👉 NIEUW: Contact in mobile menu */}
+            <li>
+              <button
+                onClick={() => go("/contact")}
+                className="w-full text-left px-3 py-2 rounded-lg transition-colors hover:bg-white/10 hover:text-white"
+              >
+                ✉️ Contact
               </button>
             </li>
           </ul>

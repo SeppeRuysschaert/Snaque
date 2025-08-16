@@ -20,8 +20,8 @@ export default function Home() {
       {/* Contact */}
       <footer className="bg-gray-900 text-white px-8 py-6 text-center">
         <h4 className="text-lg font-semibold">Contact</h4>
-        <p>Email: info@snaque.be</p>
-        <p>Tel: +32 123 45 67 89</p>
+        <p>Email: snaque100@gmail.com</p>
+        <p>Tel: +32 489 33 71 51</p>
         <p className="mt-4 text-sm text-gray-400">
           © {new Date().getFullYear()} Snaque. Alle rechten voorbehouden.
         </p>
