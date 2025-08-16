@@ -2,12 +2,12 @@
 import { broodjes } from "@/data/Broodjes";
 import BroodjeCustomizerClient from "@/components/broodjes/BroodjesCustomizerClient";
 
+type Props = { params: { id: string } };
+
 // Server Component
 export default function AddBroodjePage({
   params,
-}: {
-  params: { id: string };
-}) {
+}: Props) {
   const {id} = params
   const broodje = broodjes.find((b) => b.id === Number(id));
 
