@@ -3,12 +3,12 @@ import { broodjes } from "@/data/Broodjes";
 import BroodjeCustomizerClient from "@/components/broodjes/BroodjesCustomizerClient";
 
 // Server Component
-export default async function AddBroodjePage({
+export default function AddBroodjePage({
   params,
 }: {
   params: { id: string };
 }) {
-  const {id} = await params
+  const {id} = params
   const broodje = broodjes.find((b) => b.id === Number(id));
 
   // Ingrediënten afleiden uit desc (comma/“en” gescheiden)
