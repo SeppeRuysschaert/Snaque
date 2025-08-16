@@ -2,22 +2,39 @@
 import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { readCart, countItems, CART_KEY } from "@/lib/cart";
 
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
-  // Sluit menu bij routewissel of Esc
+  const [cartCount, setCartCount] = useState(0);
+
   useEffect(() => setOpen(false), [pathname]);
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  if (typeof window === "undefined") return;
+  // init
+  setCartCount(countItems());
+  // updates vanuit de app
+  const onUpdate = (e: Event) => {
+    const ce = e as CustomEvent<{ count: number }>;
+    if (ce.detail?.count != null) setCartCount(ce.detail.count);
+  };
+  // updates vanuit andere tabs/vensters
+  const onStorage = (e: StorageEvent) => {
+    if (e.key === CART_KEY) setCartCount(countItems());
+  };
+  window.addEventListener("cart:updated", onUpdate as EventListener);
+  window.addEventListener("storage", onStorage);
+  return () => {
+    window.removeEventListener("cart:updated", onUpdate as EventListener);
+    window.removeEventListener("storage", onStorage);
+  };
+}, []);
 
   const links = [
-    { href: "/broodjes", label: "Broodjes / Panini's" },
+    { href: "/broodjes", label: "Broodjes" },
     { href: "/soepen", label: "Soepen" },
     { href: "/pasta", label: "Pasta's" },
     { href: "/desserts", label: "Desserts" },
@@ -30,9 +47,10 @@ export default function Navbar() {
 
   return (
     <nav className="bg-gray-800/95 backdrop-blur px-4 md:px-8 py-3 shadow-md">
-      <div className="mx-auto max-w-6xl flex items-center justify-between">
-        {/* Logo + title */}
-        <div className="flex items-center gap-3">
+      {/* GRID: mobiel = [logo | spacer | icons], desktop = [links | menu | icons] */}
+      <div className="mx-auto max-w-6xl grid grid-cols-[auto_1fr_auto] md:grid-cols-[1fr_auto_1fr] items-center">
+        {/* LINKS: logo + naam */}
+        <div className="flex items-center gap-3 justify-self-start">
           <Image
             src="/images/snaque.png"
             alt="Snaque Logo"
@@ -49,8 +67,8 @@ export default function Navbar() {
           </h1>
         </div>
 
-        {/* Desktop menu */}
-        <ul className="hidden md:flex gap-6 text-sm md:text-base font-medium">
+        {/* MIDDEN: desktop menu (gecentreerd, verborgen op mobiel) */}
+        <ul className="hidden md:flex gap-6 text-sm md:text-base font-medium justify-self-center">
           {links.map((l) => {
             const active = pathname === l.href;
             return (
@@ -70,17 +88,37 @@ export default function Navbar() {
           })}
         </ul>
 
-        {/* Mobile: hamburger */}
-        <button
-          type="button"
-          className="md:hidden inline-flex items-center justify-center rounded-md p-2 text-gray-200 hover:text-white hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-          aria-label="Open menu"
-          aria-expanded={open}
-          aria-controls="site-menu"
-          onClick={() => setOpen((v) => !v)}
-        >
-          {open ? <IconClose /> : <IconHamburger />}
-        </button>
+        {/* RECHTS: winkelmandje + hamburger (mobiel) */}
+        <div className="flex items-center gap-2 justify-self-end">
+          <button
+            type="button"
+            onClick={() => go("/cart")}
+            className="relative inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-200 hover:text-white hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            aria-label="Winkelmandje"
+          >
+            <IconCart />
+            {cartCount > 0 && (
+              <span
+                className="absolute -top-1 -right-1 min-w-[18px] px-1 h-[18px] rounded-full bg-amber-500 text-[11px] leading-[18px] text-black font-semibold text-center"
+                aria-label={`${cartCount} items in winkelmandje`}
+              >
+                {cartCount}
+              </span>
+            )}
+          </button>
+
+          {/* Mobile hamburger */}
+          <button
+            type="button"
+            className="md:hidden inline-flex items-center justify-center rounded-md p-2 text-gray-200 hover:text-white hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            aria-label="Open menu"
+            aria-expanded={open}
+            aria-controls="site-menu"
+            onClick={() => setOpen((v) => !v)}
+          >
+            {open ? <IconClose /> : <IconHamburger />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile dropdown (slide-down) */}
@@ -109,6 +147,14 @@ export default function Navbar() {
                 </li>
               );
             })}
+            <li>
+              <button
+                onClick={() => go("/cart")}
+                className="w-full text-left px-3 py-2 rounded-lg transition-colors hover:bg-white/10 hover:text-white"
+              >
+                🛒 Winkelmandje
+              </button>
+            </li>
           </ul>
         </div>
       </div>
@@ -116,7 +162,7 @@ export default function Navbar() {
   );
 }
 
-/* icons (geen extra lib nodig) */
+/* Icons */
 function IconHamburger() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -128,6 +174,15 @@ function IconClose() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M6 6l12 12M18 6l-12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
+}
+function IconCart() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 5h2l2.2 10.2A2 2 0 0 0 9.15 17h7.7a2 2 0 0 0 1.95-1.8l1.05-7.35H6.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="9.5" cy="20" r="1.5" stroke="currentColor" strokeWidth="2"/>
+      <circle cx="17.5" cy="20" r="1.5" stroke="currentColor" strokeWidth="2"/>
     </svg>
   );
 }
