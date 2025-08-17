@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { addToCart } from "@/lib/cart";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 type Dessert = {
   id: number;
@@ -14,6 +15,7 @@ type Dessert = {
 
 export default function DessertsClient({ items }: { items: Dessert[] }) {
   const [qty, setQty] = useState<Record<number, number>>({});
+  const router = useRouter(); 
 
   const fmt = (n: number) =>
     new Intl.NumberFormat("nl-BE", { style: "currency", currency: "EUR" }).format(n);
@@ -60,14 +62,17 @@ export default function DessertsClient({ items }: { items: Dessert[] }) {
 
                 <button
                   type="button"
-                  onClick={() =>
+                  onClick={() => {
                     addToCart({
                       id: it.id,
                       name: it.name,
                       price: it.price,
                       qty: q,
                       note: "",
-                    })
+                    });
+                    router.push("/cart");
+                }
+                
                   }
                   className="inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-semibold bg-amber-500 text-black ring-1 ring-amber-400/60 hover:bg-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
                 >
