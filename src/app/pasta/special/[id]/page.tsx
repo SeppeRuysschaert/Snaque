@@ -3,9 +3,9 @@ import { notFound } from "next/navigation";
 import PastaCustomizerClient from "@/components/pasta/PastaCustomizerClient";
 import { SPECIAL_PASTA_LIST } from "@/data/pasta";
 
-export default function SpecialPastaPage({ params }: { params: { id: string } }) {
-  const idNum = Number(params.id);
-  const item = SPECIAL_PASTA_LIST.find((x) => x.id === idNum);
+export default async function SpecialPastaPage({ params }: { params: any }) {
+  const {idNum} = await params;
+  const item = SPECIAL_PASTA_LIST.find((x) => x.id === Number(idNum));
   if (!item) return notFound();
 
   return (
