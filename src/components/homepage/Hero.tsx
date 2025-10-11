@@ -30,7 +30,7 @@ export default function Hero() {
   }, []);
 
   return (
-    <header className="relative bg-cover bg-center flex-1 flex flex-col items-center justify-center text-center px-6 py-20">
+    <header className="relative bg-gradient-to-b from-[#1800ad]/40 to-[#0b1217] bg-cover bg-center flex-1 flex flex-col items-center justify-center text-center px-6 py-20">
       {/* zachte overlay voor leesbaarheid */}
       <div className="absolute inset-0 bg-[rgba(0,0,0,0.35)]" aria-hidden="true" />
 
