@@ -1,43 +1,110 @@
+// app/api/order/route.ts
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
-
-// Tip: zet deze ENV-variabelen in .env(.local)
 const {
   SMTP_HOST,
   SMTP_PORT = "587",
   SMTP_SECURE = "false",
   SMTP_USER,
   SMTP_PASS,
-  ORDER_EMAIL_TO,   // ontvanger (jouw mailbox)
-  ORDER_EMAIL_FROM, // afzender (mag gelijk zijn aan SMTP_USER)
+  ORDER_EMAIL_TO,
+  ORDER_EMAIL_FROM,
 } = process.env;
+
+const PASTA_SLOTS = new Set(["11:30", "12:00", "12:30", "13:00"]);
+const SIZE_SET = new Set(["small", "medium", "large"]);
 
 export async function POST(req: Request) {
   try {
     const { customer, items, total, placedAt } = await req.json();
 
-    // -- Basic server-side sanity checks --
-    if (!customer?.name || !customer?.phone || !Array.isArray(items) || items.length === 0) {
+    // Basisvalidatie
+    if (
+      !customer?.name ||
+      !customer?.phone ||
+      !Array.isArray(items) ||
+      items.length === 0
+    ) {
       return NextResponse.json({ error: "Ongeldige payload" }, { status: 400 });
     }
 
-    // TODO (aanrader): herbereken het totaal server-side op basis van je eigen prijslijst
+    // Validatie voor pasta-items
+    for (const it of items) {
+      const cat = String(it.category || "").toLowerCase();
 
-    // E-mail inhoud
+      if (cat === "pasta" || cat === "pasta_special") {
+        if (!it.timeslot || !PASTA_SLOTS.has(it.timeslot)) {
+          return NextResponse.json(
+            { error: "Pasta vereist een geldig tijdslot" },
+            { status: 400 }
+          );
+        }
+        if (!it.size || !SIZE_SET.has(String(it.size).toLowerCase())) {
+          return NextResponse.json(
+            { error: "Pasta vereist een maat: small, medium of large" },
+            { status: 400 }
+          );
+        }
+      }
+
+      if (cat === "pasta") {
+        const sauces = Array.isArray(it.sauces)
+          ? it.sauces.filter(Boolean)
+          : [];
+        if (sauces.length < 1 || sauces.length > 2) {
+          return NextResponse.json(
+            { error: "Kies 1 of 2 sauzen voor pasta" },
+            { status: 400 }
+          );
+        }
+      }
+    }
+
+    // (Optioneel) totaal herberekenen server-side:
+    // const serverTotal = items.reduce((acc: number, it: any) => acc + (Number(it.price) * (it.qty ?? 1)), 0);
+    // if (Math.abs(serverTotal - Number(total)) > 0.01) { /* afwijking afhandelen */ }
+
+    // Tekstregels per item
     const lines = items.map((it: any) => {
       const qty = it.qty ?? 1;
-      const removed = it.removed?.length ? ` | Weglaten: ${it.removed.join(", ")}` : "";
+      const removed = it.removed?.length
+        ? ` | Weglaten: ${it.removed.join(", ")}`
+        : "";
       const note = it.note ? ` | Opmerking: ${it.note}` : "";
-      return `• ${it.name} × ${qty} — € ${(it.price * qty).toFixed(2)}${removed}${note}`;
+      const cat = String(it.category || "").toLowerCase();
+      const isPasta = cat === "pasta";
+
+      const slot = it.timeslot ? ` | Timeslot: ${it.timeslot}` : "";
+      const size = it.size
+        ? ` | Maat: ${String(it.size)
+            .toLowerCase()
+            .replace(/^./, (c: string) => c.toUpperCase())}`
+        : "";
+      const sauces =
+        isPasta && Array.isArray(it.sauces) && it.sauces.length
+          ? ` | Sauzen: ${it.sauces.join(" + ")}`
+          : "";
+
+      // ✅ Broodtype (indien aanwezig)
+      const bread = it.bread
+        ? ` | Brood: ${
+            String(it.bread).toLowerCase() === "bruin" ? "Bruin" : "Wit"
+          }`
+        : "";
+
+      return `• ${it.name} × ${qty} — € ${(it.price * qty).toFixed(
+        2
+      )}${slot}${size}${sauces}${bread}${removed}${note}`;
     });
 
-    const text =
-`Nieuwe bestelling via Snaque
+    const text = `Nieuwe bestelling via Snaque
 
 Klant: ${customer.name}
 Tel.: ${customer.phone}
-${customer.note ? `Notitie: ${customer.note}\n` : ""}Datum/tijd: ${placedAt ?? new Date().toISOString()}
+${customer.note ? `Notitie: ${customer.note}\n` : ""}Datum/tijd: ${
+      placedAt ?? new Date().toISOString()
+    }
 
 Items:
 ${lines.join("\n")}
@@ -50,28 +117,73 @@ Totaal: € ${Number(total).toFixed(2)}
         <h2>Nieuwe bestelling via Snaque</h2>
         <p><strong>Klant:</strong> ${escapeHtml(customer.name)}<br/>
            <strong>Tel.:</strong> ${escapeHtml(customer.phone)}<br/>
-           ${customer.note ? `<strong>Notitie:</strong> ${escapeHtml(customer.note)}<br/>` : ""}
+           ${
+             customer.note
+               ? `<strong>Notitie:</strong> ${escapeHtml(customer.note)}<br/>`
+               : ""
+           }
            <strong>Datum/tijd:</strong> ${placedAt ?? new Date().toISOString()}
         </p>
         <h3>Items</h3>
         <ul>
-          ${items.map((it: any) => {
-            const qty = it.qty ?? 1;
-            const removed = it.removed?.length ? ` | Weglaten: ${it.removed.join(", ")}` : "";
-            const note = it.note ? ` | Opmerking: ${escapeHtml(it.note)}` : "";
-            return `<li>${escapeHtml(it.name)} × ${qty} — € ${(it.price * qty).toFixed(2)}${removed}${note}</li>`;
-          }).join("")}
+          ${items
+            .map((it: any) => {
+              const qty = it.qty ?? 1;
+              const removed = it.removed?.length
+                ? ` | Weglaten: ${it.removed.join(", ")}`
+                : "";
+              const note = it.note
+                ? ` | Opmerking: ${escapeHtml(it.note)}`
+                : "";
+              const cat = String(it.category || "").toLowerCase();
+              const isPasta = cat === "pasta";
+
+              const slot = it.timeslot ? ` | Timeslot: ${it.timeslot}` : "";
+              const size = it.size
+                ? ` | Maat: ${String(it.size)
+                    .toLowerCase()
+                    .replace(/^./, (c) => c.toUpperCase())}`
+                : "";
+              const sauces =
+                isPasta && Array.isArray(it.sauces) && it.sauces.length
+                  ? ` | Sauzen: ${it.sauces.join(" + ")}`
+                  : "";
+
+              // ✅ Broodtype (indien aanwezig)
+              const bread = it.bread
+                ? ` | Brood: ${
+                    String(it.bread).toLowerCase() === "bruin" ? "Bruin" : "Wit"
+                  }`
+                : "";
+
+              const safeName = escapeHtml(it.name);
+              const safeRemoved = escapeHtml(removed);
+              const safeSlot = escapeHtml(slot);
+              const safeSize = escapeHtml(size);
+              const safeSauces = escapeHtml(sauces);
+              const safeBread = escapeHtml(bread);
+
+              return `<li>${safeName} × ${qty} — € ${(it.price * qty).toFixed(
+                2
+              )}${safeSlot}${safeSize}${safeSauces}${safeBread}${safeRemoved}${note}</li>`;
+            })
+            .join("")}
+
+
         </ul>
         <p><strong>Totaal:</strong> € ${Number(total).toFixed(2)}</p>
       </div>
     `;
 
-    // Transport
+    // E-mail transport
     const transporter = nodemailer.createTransport({
       host: SMTP_HOST,
       port: Number(SMTP_PORT),
       secure: SMTP_SECURE === "true",
-      auth: SMTP_USER && SMTP_PASS ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
+      auth:
+        SMTP_USER && SMTP_PASS
+          ? { user: SMTP_USER, pass: SMTP_PASS }
+          : undefined,
     });
 
     await transporter.sendMail({
@@ -85,11 +197,20 @@ Totaal: € ${Number(total).toFixed(2)}
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     console.error("Order email error", e);
-    return NextResponse.json({ error: "Serverfout bij verzenden" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Serverfout bij verzenden" },
+      { status: 500 }
+    );
   }
 }
 
 // kleine helper
 function escapeHtml(s: string) {
-  return String(s).replace(/[&<>"']/g, (m) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]!));
+  return String(s).replace(
+    /[&<>\"']/g,
+    (m) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[
+        m
+      ]!)
+  );
 }

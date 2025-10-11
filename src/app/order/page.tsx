@@ -5,6 +5,29 @@ import { useRouter } from "next/navigation";
 import { readCart, clearCart, countItems } from "@/lib/cart";
 import type { CartItem } from "@/lib/cart";
 
+const SLOT_VALUES = ["11:30", "12:00", "12:30", "13:00"] as const;
+const SIZE_VALUES = ["small", "medium", "large"] as const;
+
+function isPasta(it: CartItem) {
+  const cat = (it as any)?.category;
+  return typeof cat === "string" && cat.toLowerCase() === "pasta";
+}
+function hasTimeslot(it: CartItem) {
+  const s = (it as any)?.timeslot;
+  return !!s && (SLOT_VALUES as readonly string[]).includes(s);
+}
+function hasSize(it: CartItem) {
+  const sz = String((it as any)?.size || "").toLowerCase();
+  return (SIZE_VALUES as readonly string[]).includes(sz);
+}
+function saucesArray(it: CartItem): string[] {
+  const arr = (it as any)?.sauces;
+  return Array.isArray(arr) ? arr.filter(Boolean) : [];
+}
+function cap(s: string) {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}
+
 export default function Order() {
   const router = useRouter();
   const [items, setItems] = useState<CartItem[]>([]);
@@ -21,7 +44,7 @@ export default function Order() {
     new Intl.NumberFormat("nl-BE", { style: "currency", currency: "EUR" }).format(n);
 
   const total = useMemo(
-    () => items.reduce((s, it) => s + (it.price * (it.qty ?? 1)), 0),
+    () => items.reduce((s, it) => s + it.price * (it.qty ?? 1), 0),
     [items]
   );
 
@@ -57,21 +80,28 @@ export default function Order() {
   if (done) {
     return (
       <main className="isolate mx-auto max-w-3xl px-4 py-6 md:py-10 text-slate-100">
-        <section className="rounded-3xl bg-[#111418] border border-white/10 ring-1 ring-black/20 shadow-xl">
+        <section
+          className="
+            rounded-3xl border border-white/10 ring-1 ring-black/20 shadow-xl
+            bg-white/5 backdrop-blur
+          "
+        >
           <div className="p-6 md:p-8">
-            <h1 className="text-3xl md:text-4xl font-semibold">Bedankt!</h1>
+            <h1 className="text-3xl md:text-4xl font-semibold" style={{ color: "#f4f5d3" }}>
+              Bedankt!
+            </h1>
             <p className="mt-2 text-slate-300">
               Je bestelling is verstuurd. We nemen contact op via jouw telefoonnummer.
             </p>
             <div className="mt-5 flex gap-2">
               <button
-                className="rounded-md px-3 py-2 text-sm font-medium text-slate-200 ring-1 ring-white/10 hover:bg-white/10"
+                className="btn-ghost"
                 onClick={() => router.push("/broodjes")}
               >
                 Verder bestellen
               </button>
               <button
-                className="rounded-md px-3 py-2 text-sm font-medium text-slate-200 ring-1 ring-white/10 hover:bg-white/10"
+                className="btn-ghost"
                 onClick={() => router.push("/")}
               >
                 Terug naar home
@@ -85,14 +115,25 @@ export default function Order() {
 
   return (
     <main className="isolate mx-auto max-w-4xl px-4 py-6 md:py-10 text-slate-100">
-      <section className="rounded-3xl bg-[#111418] border border-white/10 ring-1 ring-black/20 shadow-xl">
+      <section
+        className="
+          rounded-3xl border border-white/10 ring-1 ring-black/20 shadow-xl
+          bg-white/5 backdrop-blur
+        "
+      >
         <div className="p-6 md:p-8">
           <header className="mb-6">
-            <h1 className="text-3xl md:text-4xl font-semibold">Bestellen</h1>
+            <h1
+              className="text-3xl md:text-4xl font-semibold tracking-tight"
+              style={{ color: "#f4f5d3" }}
+            >
+              Bestellen
+            </h1>
             <p className="mt-1 text-sm text-slate-400">
               Vul je gegevens in en bevestig je bestelling.
             </p>
-            <div className="mt-4 h-1 w-full rounded-full bg-gradient-to-r from-amber-400/40 to-rose-400/40" />
+            {/* subtiele beige accentlijn */}
+            <div className="mt-4 h-1 w-full rounded-full bg-gradient-to-r from-[#f4f5d3]/40 via-transparent to-transparent" />
           </header>
 
           {/* Bestellingsoverzicht */}
@@ -102,20 +143,63 @@ export default function Order() {
               <p className="mt-2 text-slate-400">Je winkelmandje is leeg.</p>
             ) : (
               <ul className="mt-3 divide-y divide-white/10">
-                {items.map((it) => (
-                  <li key={it.addedAt} className="py-2 flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-medium">{it.name} {it.qty && it.qty > 1 ? `× ${it.qty}` : ""}</p>
-                      <p className="text-sm text-slate-400">
-                        {it.removed?.length ? `Weglaten: ${it.removed.join(", ")}` : null}
-                        {it.note ? `${it.removed?.length ? " — " : ""}Opmerking: ${it.note}` : null}
-                      </p>
-                    </div>
-                    <div className="rounded-lg bg-[#0f1418] px-2 py-1 text-xs font-semibold ring-1 ring-white/10">
-                      {fmt(it.price * (it.qty ?? 1))}
-                    </div>
-                  </li>
-                ))}
+                {items.map((it) => {
+                  const pasta = isPasta(it);
+                  const sauces = saucesArray(it);
+                  return (
+                    <li key={it.addedAt} className="py-2 flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-medium">
+                          {it.name} {it.qty && it.qty > 1 ? `× ${it.qty}` : ""}
+                        </p>
+
+                        {/* badges/extra info */}
+                        <div className="mt-1 flex flex-wrap gap-1.5 text-xs">
+                          {/* broodtype */}
+                          {(it as any).bread && (
+                            <span className="inline-flex items-center rounded-md bg-white/5 text-slate-200 ring-1 ring-white/10 px-2 py-0.5 font-medium">
+                              Brood: {String((it as any).bread).toLowerCase() === "bruin" ? "Bruin" : "Wit"}
+                            </span>
+                          )}
+
+                          {/* pasta details */}
+                          {pasta && hasTimeslot(it) && (
+                            <span className="inline-flex items-center rounded-md bg-white/5 text-slate-200 ring-1 ring-white/10 px-2 py-0.5 font-medium">
+                              Timeslot: {(it as any).timeslot}
+                            </span>
+                          )}
+                          {pasta && hasSize(it) && (
+                            <span className="inline-flex items-center rounded-md bg-white/5 text-slate-200 ring-1 ring-white/10 px-2 py-0.5 font-medium">
+                              Maat: {cap(String((it as any).size))}
+                            </span>
+                          )}
+                          {pasta && sauces.length > 0 && (
+                            <span className="inline-flex items-center rounded-md bg-white/5 text-slate-200 ring-1 ring-white/10 px-2 py-0.5 font-medium">
+                              Sauzen: {sauces.join(" + ")}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* weglaten/opmerking */}
+                        {(it as any).removed?.length > 0 || (it as any).note ? (
+                          <p className="mt-1 text-sm text-slate-400">
+                            {(it as any).removed?.length > 0
+                              ? `Weglaten: ${(it as any).removed.join(", ")}`
+                              : null}
+                            {(it as any).note
+                              ? `${(it as any).removed?.length ? " — " : ""}Opmerking: ${(it as any).note}`
+                              : null}
+                          </p>
+                        ) : null}
+                      </div>
+
+                      {/* Prijsbadge (neutraal) */}
+                      <div className="inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold text-slate-100 ring-1 ring-white/12 bg-white/8">
+                        {fmt(it.price * (it.qty ?? 1))}
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             )}
             <div className="mt-3 flex items-center justify-between">
@@ -131,7 +215,7 @@ export default function Order() {
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-lg bg-[#0f1418] border border-white/10 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#f4f5d3] focus:border-white/20"
                 placeholder="Voor- en achternaam"
               />
             </div>
@@ -141,7 +225,7 @@ export default function Order() {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 inputMode="tel"
-                className="w-full rounded-lg bg-[#0f1418] border border-white/10 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#f4f5d3] focus:border-white/20"
                 placeholder="bv. 0470 12 34 56"
               />
             </div>
@@ -151,8 +235,8 @@ export default function Order() {
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 rows={3}
-                className="w-full rounded-lg bg-[#0f1418] border border-white/10 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-300"
-                placeholder="Bv. afhalen om 12u15"
+                className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#f4f5d3] focus:border-white/20"
+                placeholder=""
               />
             </div>
           </div>
@@ -168,11 +252,9 @@ export default function Order() {
               type="button"
               disabled={!valid || sending}
               onClick={submit}
-              className={`inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold
-                ${valid ? "bg-amber-500 text-black hover:bg-amber-400" : "bg-amber-500/40 text-black/60"}
-                ring-1 ring-amber-400/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300`}
+              className={`btn-snaque px-4 py-2 ${!valid || sending ? "opacity-60 cursor-not-allowed" : ""}`}
             >
-              {sending ? "Versturen…" : `Bestellen (${countItems(items)} item${countItems(items)===1?"":"s"})`}
+              {sending ? "Versturen…" : `Bestellen (${countItems(items)} item${countItems(items) === 1 ? "" : "s"})`}
             </button>
           </div>
         </div>

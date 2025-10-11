@@ -8,10 +8,18 @@ export type CartItem = {
   name: string;
   price: number;
   qty?: number;
-  removed?: string[];  // weggelaten ingrediënten
+  removed?: string[];
   note?: string;
   addedAt?: number;
+
+  category?: string;
+  timeslot?: "11:30" | "12:00" | "12:30" | "13:00";
+  size?: "small" | "medium" | "large";
+  sauces?: string[];
+
+  bread?: "wit" | "bruin"; 
 };
+
 
 export function readCart(): CartItem[] {
   if (typeof window === "undefined") return [];

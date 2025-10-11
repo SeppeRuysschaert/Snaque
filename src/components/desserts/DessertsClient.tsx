@@ -15,7 +15,7 @@ type Dessert = {
 
 export default function DessertsClient({ items }: { items: Dessert[] }) {
   const [qty, setQty] = useState<Record<number, number>>({});
-  const router = useRouter(); 
+  const router = useRouter();
 
   const fmt = (n: number) =>
     new Intl.NumberFormat("nl-BE", { style: "currency", currency: "EUR" }).format(n);
@@ -48,17 +48,24 @@ export default function DessertsClient({ items }: { items: Dessert[] }) {
                 <div className="min-w-0">
                   <h3 className="text-lg font-semibold leading-tight">{it.name}</h3>
                   {it.desc && (
-                    <p className="mt-1 text-sm text-slate-300 line-clamp-2">{it.desc}</p>
+                    <p className="mt-1 text-sm text-slate-300 line-clamp-2">
+                      {it.desc}
+                    </p>
                   )}
                 </div>
-                <div className="rounded-lg bg-[#0f1418] px-2 py-1 text-xs font-semibold text-slate-100 ring-1 ring-white/10">
+                {/* neutrale prijsbadge */}
+                <div className="inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold text-slate-100 ring-1 ring-white/12 bg-white/8">
                   {fmt(it.price)}
                 </div>
               </div>
 
               {/* Actiebalk */}
               <div className="mt-4 flex items-center justify-between">
-                <Qty value={q} onDec={() => setQ(it.id, q - 1)} onInc={() => setQ(it.id, q + 1)} />
+                <Qty
+                  value={q}
+                  onDec={() => setQ(it.id, q - 1)}
+                  onInc={() => setQ(it.id, q + 1)}
+                />
 
                 <button
                   type="button"
@@ -71,10 +78,8 @@ export default function DessertsClient({ items }: { items: Dessert[] }) {
                       note: "",
                     });
                     router.push("/cart");
-                }
-                
-                  }
-                  className="inline-flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-semibold bg-amber-500 text-black ring-1 ring-amber-400/60 hover:bg-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
+                  }}
+                  className="btn-snaque inline-flex items-center justify-center gap-2"
                 >
                   + Toevoegen
                 </button>
@@ -87,7 +92,15 @@ export default function DessertsClient({ items }: { items: Dessert[] }) {
   );
 }
 
-function Qty({ value, onDec, onInc }: { value: number; onDec: () => void; onInc: () => void }) {
+function Qty({
+  value,
+  onDec,
+  onInc,
+}: {
+  value: number;
+  onDec: () => void;
+  onInc: () => void;
+}) {
   return (
     <div className="inline-flex items-center rounded-md ring-1 ring-white/10 overflow-hidden">
       <button

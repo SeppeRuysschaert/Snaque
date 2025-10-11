@@ -1,48 +1,35 @@
+// app/pasta/page.tsx
+import Pasta from "@/components/pasta/Pasta";
+import SpecialPasta from "@/components/pasta/SpecialPasta";
+import { PASTA_LIST, SPECIAL_PASTA_LIST } from "@/data/pasta";
 import Link from "next/link";
 
-export default function Pastas() {
+export default function PastaPage() {
   return (
-    <main className="isolate mx-auto max-w-6xl px-4 py-6 md:py-10 text-slate-100">
-      <section className="relative overflow-hidden rounded-3xl bg-[#111418] border border-white/10 ring-1 ring-black/20 shadow-xl">
-        <div className="p-5 md:p-8">
-          <header className="mb-6">
-            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">Pasta&apos;s</h1>
-            <p className="mt-1 text-sm text-slate-400">
-              Onder voorbehoud — assortiment en prijzen volgen binnenkort.
-            </p>
-            <div className="mt-4 h-1 w-full rounded-full bg-gradient-to-r from-amber-400/40 to-rose-400/40" />
-          </header>
-
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
-            <div className="flex items-center gap-3">
-              <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/10">🍝</span>
-              <div>
-                <p className="font-medium">Binnenkort beschikbaar</p>
-                <p className="text-sm text-slate-400">We werken het aanbod af. Kom snel terug!</p>
-              </div>
-            </div>
-
-            <div className="mt-5 flex gap-2">
-              <Link
-                href="/broodjes"
-                className="inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-medium text-slate-200 ring-1 ring-white/10 hover:bg-white/10"
-              >
-                Naar Broodjes
-              </Link>
-              <Link
-                href="/"
-                className="inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-medium text-slate-200 ring-1 ring-white/10 hover:bg-white/10"
-              >
-                Home
-              </Link>
-            </div>
-          </div>
-
-          <p className="mt-6 text-xs text-slate-500">
-            * Onder voorbehoud: dagprijzen en beschikbaarheid kunnen wijzigen.
-          </p>
+    <main className="mx-auto max-w-4xl px-4 py-8 space-y-10">
+      <section>
+        <h1 className="text-2xl font-semibold text-slate-100">Sauzen</h1>
+        <ul className="mt-4 grid sm:grid-cols-2 gap-4">
+          {PASTA_LIST.map((p) => <Pasta key={p.id} item={p} />)}
+        </ul>
+        <div className="pt-4 flex justify-end">
+          <Link
+            href="/pasta/add"
+            className="inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold bg-amber-500 text-black ring-1 ring-amber-400/60 hover:bg-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
+          >
+            Pasta bestellen
+          </Link>
         </div>
       </section>
+
+      {SPECIAL_PASTA_LIST.length > 0 && (
+        <section>
+          <h2 className="text-xl font-semibold text-slate-100">Specials</h2>
+          <ul className="mt-4 grid sm:grid-cols-2 gap-4">
+            {SPECIAL_PASTA_LIST.map((p) => <SpecialPasta key={p.id} item={p} />)}
+          </ul>
+        </section>
+      )}
     </main>
   );
 }

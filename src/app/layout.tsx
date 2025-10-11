@@ -3,15 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Snaque",
@@ -20,23 +13,30 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="nl" className="h-full">
-      <body className="min-h-screen bg-[#0b1217] text-slate-100 antialiased">
-        {/* full-bleed achtergrondlagen */}
-        <div className="fixed inset-0 -z-10 bg-[#0b1217]" />
-        <div
-          className="pointer-events-none fixed inset-0 -z-10
-                        bg-[radial-gradient(1200px_600px_at_50%_-100px,rgba(56,189,248,0.08),transparent)]"
-        />
-        {/* zachte vignet zodat container loskomt van de randen */}
-        <div
-          className="pointer-events-none fixed inset-0 -z-10
-                        bg-[linear-gradient(to_bottom,transparent,rgba(2,6,12,0.4))]"
-        />
+      <body
+        className={[
+          "min-h-screen text-slate-100 antialiased",
+          geistSans.variable,
+          geistMono.variable,
+        ].join(" ")}
+        style={{
+          /* Donker navy basis (ipv zwart) */
+          backgroundColor: "#0e1330",
+          /* Direct op body: blauw + beige radials, subtiel maar zichtbaar */
+          backgroundImage: `
+            radial-gradient(1200px 600px at 20% -10%, rgba(24, 0, 173, 0.30), transparent 60%),
+            radial-gradient(900px 500px at 85% -10%, rgba(24, 0, 173, 0.24), transparent 60%),
+            radial-gradient(800px 420px at 50% 115%, rgba(244, 245, 211, 0.10), transparent 60%)
+          `,
+          backgroundRepeat: "no-repeat, no-repeat, no-repeat",
+          backgroundAttachment: "fixed, fixed, fixed",
+          backgroundSize: "auto, auto, auto",
+        }}
+      >
+        {/* Geen overlay-divs meer die het effect afzwakken */}
         <Navbar />
         {children}
       </body>

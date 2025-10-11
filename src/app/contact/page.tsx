@@ -48,14 +48,25 @@ export default function Contact() {
   if (done) {
     return (
       <main className="isolate mx-auto max-w-3xl px-4 py-6 md:py-10 text-slate-100">
-        <section className="relative overflow-hidden rounded-3xl bg-[#111418] border border-white/10 ring-1 ring-black/20 shadow-xl">
+        <section
+          className="
+            relative overflow-hidden rounded-3xl
+            border border-white/10 ring-1 ring-black/20 shadow-xl
+            bg-white/5 backdrop-blur
+          "
+        >
           <div className="p-6 md:p-8">
-            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">Bedankt!</h1>
+            <h1
+              className="text-3xl md:text-4xl font-semibold tracking-tight"
+              style={{ color: "#f4f5d3" }}
+            >
+              Bedankt!
+            </h1>
             <p className="mt-2 text-slate-300">
               Je bericht is verzonden. We antwoorden zo snel mogelijk.
             </p>
             <button
-              className="mt-5 inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-medium text-slate-200 ring-1 ring-white/10 hover:bg-white/10"
+              className="mt-5 btn-ghost"
               onClick={() => setDone(false)}
             >
               Nog een bericht sturen
@@ -68,12 +79,26 @@ export default function Contact() {
 
   return (
     <main className="isolate mx-auto max-w-3xl px-4 py-6 md:py-10 text-slate-100">
-      <section className="relative overflow-hidden rounded-3xl bg-[#111418] border border-white/10 ring-1 ring-black/20 shadow-xl">
+      <section
+        className="
+          relative overflow-hidden rounded-3xl
+          border border-white/10 ring-1 ring-black/20 shadow-xl
+          bg-white/5 backdrop-blur
+        "
+      >
         <div className="p-6 md:p-8">
           <header className="mb-6">
-            <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">Contact</h1>
-            <p className="mt-1 text-sm text-slate-400">Stuur ons een bericht — we antwoorden snel.</p>
-            <div className="mt-4 h-1 w-full rounded-full bg-gradient-to-r from-sky-400/40 to-emerald-400/40" />
+            <h1
+              className="text-3xl md:text-4xl font-semibold tracking-tight"
+              style={{ color: "#f4f5d3" }}
+            >
+              Contact
+            </h1>
+            <p className="mt-1 text-sm text-slate-400">
+              Stuur ons een bericht — we antwoorden snel.
+            </p>
+            {/* subtiele beige accentlijn */}
+            <div className="mt-4 h-1 w-full rounded-full bg-gradient-to-r from-[#f4f5d3]/40 via-transparent to-transparent" />
           </header>
 
           <form onSubmit={submit} className="space-y-4">
@@ -101,7 +126,7 @@ export default function Contact() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg bg-[#0f1418] border border-white/10 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#f4f5d3] focus:border-white/20"
                 placeholder="jij@voorbeeld.be"
               />
             </div>
@@ -116,7 +141,7 @@ export default function Contact() {
                 rows={6}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="w-full rounded-lg bg-[#0f1418] border border-white/10 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-300"
+                className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#f4f5d3] focus:border-white/20"
                 placeholder="Waarmee kunnen we helpen?"
               />
             </div>
@@ -127,9 +152,7 @@ export default function Contact() {
               <button
                 type="submit"
                 disabled={!valid || sending}
-                className={`inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-semibold
-                ${valid ? "bg-amber-500 text-black hover:bg-amber-400" : "bg-amber-500/40 text-black/60"}
-                ring-1 ring-amber-400/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300`}
+                className={`btn-snaque px-4 py-2 ${!valid || sending ? "opacity-60 cursor-not-allowed" : ""}`}
               >
                 {sending ? "Versturen…" : "Versturen"}
               </button>

@@ -1,52 +1,43 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+:root{
+  --snaque-blue:#1800ad;
+  --snaque-blue-700:#0f0070;
+  --snaque-beige:#f4f5d3;
+  --panel:#0d1117;
+  --panel-border: rgba(255,255,255,.08);
 }
 
-html, body { height: 100%; background-color: #0b0b0b !important; color: #e5e7eb; }
-
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* pagina-achtergrond */
+html,body{
+  background:
+    radial-gradient(1200px 600px at 20% -10%, rgba(24,0,173,.24), transparent 60%),
+    radial-gradient(900px 500px at 80% -10%, rgba(24,0,173,.18), transparent 60%),
+    #030712;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* generieke panel look */
+.panel {
+  @apply rounded-3xl border border-white/10 bg-white/5 ring-1 ring-black/20;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.btn-snaque{
+  @apply inline-flex items-center justify-center gap-2 rounded-md px-3 py-1.5 text-sm font-semibold ring-1 transition;
+  color: #0b0f2a;
+  background: var(--snaque-beige);
+  border-color: color-mix(in srgb, var(--snaque-blue) 20%, transparent);
+}
+.btn-snaque:hover{
+  background: color-mix(in srgb, var(--snaque-beige) 88%, white);
+}
+.btn-snaque:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 2px var(--snaque-beige), 0 0 0 6px color-mix(in srgb, var(--snaque-blue) 60%, transparent);
 }
 
-/* Basis: werkt ALTIJD (ook in Safari), geen overbelichting */
-.glass {
-  background-color: rgba(15, 15, 15, 0.70);   /* donkere backplate */
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.badge-snaque{
+  @apply inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1;
+  color: var(--snaque-beige);
+  background: color-mix(in srgb, var(--snaque-blue) 35%, transparent);
+  border-color: color-mix(in srgb, white 15%, transparent);
 }
-
-/* Progressive enhancement: alleen als blur/transparantie betrouwbaar is */
-@supports ((-webkit-backdrop-filter: blur(8px)) or (backdrop-filter: blur(8px))) {
-  .glass {
-    background-color: rgba(255, 255, 255, 0.06);
-    -webkit-backdrop-filter: saturate(140%) blur(10px);
-    backdrop-filter: saturate(140%) blur(10px);
-  }
-}
-
-/* Variantjes voor kleinere elementen */
-.glass-card  { composes: glass; border-radius: 1rem; }
-.glass-input { composes: glass; background-color: rgba(20,20,20,0.65); }
-@supports ((-webkit-backdrop-filter: blur(8px)) or (backdrop-filter: blur(8px))) {
-  .glass-input { background-color: rgba(255,255,255,0.08); }
-}
-

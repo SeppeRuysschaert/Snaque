@@ -1,6 +1,6 @@
-// app/broodjes/[id]/page.tsx  (of jouw routepad)
+// app/broodjes/[id]/page.tsx
 import { broodjes } from "@/data/Broodjes";
-import BroodjeCustomizerClient from "@/components/broodjes/BroodjesCustomizerClient";
+import BroodjeCustomizerClient from "@/components/broodjes/BroodjesCustomizerClient"; // ✅ pad gefixt
 
 // Server Component
 export default async function AddBroodjePage({
@@ -8,7 +8,7 @@ export default async function AddBroodjePage({
 }: {
   params: any;
 }) {
-  const {id} = await params
+  const { id } = await params;
   const broodje = broodjes.find((b) => b.id === Number(id));
 
   // Ingrediënten afleiden uit desc (comma/“en” gescheiden)
@@ -19,17 +19,22 @@ export default async function AddBroodjePage({
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean)
-      // dubbele of generieke spaties/namen weg
       .filter((v, i, a) => a.indexOf(v) === i) || [];
 
   return (
     <main className="isolate mx-auto max-w-3xl px-4 py-6 md:py-10 text-slate-100">
-      <section className="relative overflow-hidden rounded-3xl bg-[#111418] border border-white/10 ring-1 ring-black/20 shadow-xl">
+      <section
+        className="
+          relative overflow-hidden rounded-3xl
+          border border-white/10 ring-1 ring-black/20 shadow-xl
+          bg-white/5 backdrop-blur           /* ✅ neutrale panel i.p.v. zwart */
+        "
+      >
         <div className="p-5 md:p-8">
           <header className="mb-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h1 className="text-3xl md:text-4xl font-semibold tracking-tight">
+                <h1 className="text-3xl md:text-4xl font-semibold tracking-tight" style={{ color: "#f4f5d3" }}>
                   {broodje?.name ?? "Onbekend broodje"}
                 </h1>
                 <p className="mt-1 text-sm text-slate-400">
@@ -37,7 +42,7 @@ export default async function AddBroodjePage({
                 </p>
               </div>
               {typeof broodje?.price === "number" && (
-                <div className="rounded-lg bg-[#0f1418] px-3 py-1.5 text-sm font-semibold text-slate-100 ring-1 ring-white/10">
+                <div className="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-semibold text-slate-100 ring-1 ring-white/12 bg-white/8">
                   {new Intl.NumberFormat("nl-BE", {
                     style: "currency",
                     currency: "EUR",
@@ -45,7 +50,9 @@ export default async function AddBroodjePage({
                 </div>
               )}
             </div>
-            <div className="mt-4 h-1 w-full rounded-full bg-gradient-to-r from-sky-400/40 to-emerald-400/40" />
+
+            {/* subtiele beige accentlijn */}
+            <div className="mt-4 h-1 w-full rounded-full bg-gradient-to-r from-[#f4f5d3]/40 via-transparent to-transparent" />
           </header>
 
           {/* Client UI met toggles voor weglaten */}
@@ -60,5 +67,3 @@ export default async function AddBroodjePage({
     </main>
   );
 }
-
-
