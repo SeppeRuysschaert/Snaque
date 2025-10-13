@@ -5,15 +5,15 @@ import DessertsClient from "@/components/desserts/DessertsClient";
 const desserts = [
   {
     id: 901,
-    name: "Confituretaartje",
-    price: 2.4, // EUR
+    name: "Confituurtaartje",
+    price: 3.3, // EUR
     image: "/images/confiture.png",
     desc: "Zanddeeg met abrikozenconfituur en raster.",
   },
   {
     id: 902,
     name: "Rijsttaartje",
-    price: 2.6, // EUR
+    price: 3.3, // EUR
     image: "/images/rijsttaart.png",
     desc: "Romige rijstvulling, goudbruin gebakken.",
   },

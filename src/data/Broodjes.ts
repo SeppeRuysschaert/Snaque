@@ -34,4 +34,10 @@ export const broodjes: Broodje[] = [
   { id: 225, name: "Broodje kipfilet",          price: 5.50, desc: "Kipfilet, sla, tuinkers, mayonaise, tomaat, komkommer, wortels en ei", tags: [] },
   { id: 226, name: "Broodje kipsalade",         price: 5.10, desc: "Kipsalade, cocktailsaus, perzik en tuinkers", tags: [] },
   { id: 227, name: "Broodje rosbief",           price: 6.90, desc: "Rosbief, tuinkers, tomaat, parmezan en truffelmayonnaise", tags: [] },
+
+  
+  { id: 228, name: "Broodje carpacio",          price: 8.70, desc: "Carpaccio van rund, parmezan, rucola, truffelolie", tags: [] },
+  { id: 229, name: "Broodje tonijn pikant",     price: 5.90, desc: "Tonijn, pikante saus, tomaat, augurk", tags: ["Vis"] },
+  { id: 230, name: "Broodje iberico",           price: 10.80, desc: "Iberico ham, rucola, tomaat, olijfolie", tags: [] },
+  { id: 231, name: "Broodje pastrami",          price: 8.70, desc: "Pastrami, mosterd, augurk, sla", tags: [] },
 ];

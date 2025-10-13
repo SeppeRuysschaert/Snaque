@@ -20,7 +20,7 @@ export default function Info() {
           studenten op maandag geen toegang tot eten tijdens de middagpauze
           (broodjes, soep, warme maaltijden, desserts).
         </p>
-        <p className="text-gray-700">📍 Kantienberg</p>
+        <p className="text-gray-700">📍 Stropkaai</p>
       </div>
     </section>
   );
