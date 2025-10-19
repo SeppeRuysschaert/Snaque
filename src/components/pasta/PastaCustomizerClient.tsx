@@ -231,7 +231,7 @@ export default function PastaCustomizerClient({
       {/* Kaas (vervangt Opmerking) + CTA */}
       <section className="flex flex-col gap-3">
         <div className="flex-1">
-          <h2 className="text-base font-semibold text-slate-200 mb-2">Kaas</h2>
+          <h2 className="text-base font-semibold text-slate-200 mb-2">Emmental kaas</h2>
 
           <div
             role="radiogroup"
@@ -239,8 +239,8 @@ export default function PastaCustomizerClient({
             className="grid grid-cols-2 gap-2"
           >
             {[
-              { key: "with", label: "Met kaas" },
-              { key: "without", label: "Zonder kaas" },
+              { key: "with", label: "Met Emmental" },
+              { key: "without", label: "Zonder Emmental" },
             ].map(({ key, label }) => {
               const active = cheese === (key as "with" | "without");
               return (
@@ -271,7 +271,7 @@ export default function PastaCustomizerClient({
             ].join(" ")}
             aria-live="polite"
           >
-            {cheeseValid ? "placeholder" : "Kies met of zonder kaas."}
+            {cheeseValid ? "placeholder" : "Kies met of zonder Emmental."}
           </p>
 
           {/* Knop ONDER de kaas-keuze */}

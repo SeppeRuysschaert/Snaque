@@ -168,7 +168,7 @@ export default function Order() {
                           {/* 🧀 Kaas-badge (alleen tonen als aanwezig) */}
                           {pasta && cheese && (
                             <span className="inline-flex items-center rounded-md bg-white/5 text-slate-200 ring-1 ring-white/10 px-2 py-0.5 font-medium">
-                              Kaas: {cheese}
+                              Emmental: {cheese}
                             </span>
                           )}
                         </div>

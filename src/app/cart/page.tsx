@@ -215,7 +215,7 @@ export default function Cart() {
                               {/* Kaas */}
                               {cheeseOk ? (
                                 <span className="inline-flex items-center rounded-md bg-white/5 text-slate-200 ring-1 ring-white/10 px-2 py-1 text-xs font-medium">
-                                  Kaas: {cheeseTxt}
+                                  Emmental: {cheeseTxt}
                                 </span>
                               ) : (
                                 <span className="inline-flex items-center rounded-md bg-rose-500/10 text-rose-200 ring-1 ring-rose-400/30 px-2 py-1 text-xs">
