@@ -33,7 +33,7 @@ export default function PastaCustomizerClient({
   const [timeslot, setTimeslot] = useState<PastaTimeslot | "">("");
 
   const PRICES = priceBySize ?? DEFAULT_PRICE_BY_SIZE;
-  const SAUCES = (saucesProp?.length ? saucesProp : ["Bolognese","Carbonara","Pesto","Arrabbiata","Vier kazen","Roomsaus"]) as string[];
+  const SAUCES = (saucesProp?.length ? saucesProp : ["Bolognese","Carbonara","Pesto","Arrabbiata","Vier kazen", "Diabolique", "Pomodoro", "Spinazie"]) as string[];
 
   const fmt = (n: number) => new Intl.NumberFormat("nl-BE", { style: "currency", currency: "EUR" }).format(n);
   const currentPrice = useMemo(() => (size ? PRICES[size as Size] : PRICES.medium), [PRICES, size]);

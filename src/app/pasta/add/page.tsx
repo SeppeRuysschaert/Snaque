@@ -6,7 +6,7 @@ const PRICE_BY_SIZE = { small: 6.5, medium: 8.5, large: 10.5 };
 
 
 export default function PastaAddStandalone() {
-  const sauces = ["Bolognese", "Carbonara", "Pesto", "Arrabbiata", "Vier kazen", "Roomsaus"];
+  const sauces = ["Bolognese","Carbonara","Pesto","Arrabbiata","Vier kazen", "Diabolique", "Pomodoro", "Spinazie"];
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 space-y-6">
       <h1 className="text-xl font-semibold text-slate-100">Pasta bestellen</h1>

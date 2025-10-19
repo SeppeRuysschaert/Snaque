@@ -94,14 +94,14 @@ export const SPECIAL_PASTA_LIST: PastaItem[] = [
     name: "Meat Lover Mix",
     desc: "Diabolique & carbonara",
     tags: ["special", "vlees", "pikant"],
-    priceBySize: PRICE_BY_SIZE_SPECIAL,
+    priceBySize: PRICE_BY_SIZE,
   },
   {
     id: 602,
     name: "Veggie Mix",
     desc: "Arrabbiata & vier kazen",
     tags: ["special", "veggie", "pikant"],
-    priceBySize: PRICE_BY_SIZE_SPECIAL,
+    priceBySize: PRICE_BY_SIZE,
   },
   // "Switch & Mix" bewust weggelaten
   {
