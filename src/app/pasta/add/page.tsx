@@ -2,7 +2,7 @@
 import PastaCustomizerClient from "@/components/pasta/PastaCustomizerClient";
 import { PASTA_LIST } from "@/data/pasta";
 
-const PRICE_BY_SIZE = { small: 6.5, medium: 8.5, large: 10.5 };
+const PRICE_BY_SIZE = { small: 6.00, medium: 8.00, large: 10.00 };
 
 
 export default function PastaAddStandalone() {
