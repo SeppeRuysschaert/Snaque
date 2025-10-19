@@ -14,10 +14,13 @@ import {
 
 const SLOT_VALUES = ["11:30", "12:00", "12:30", "13:00"] as const;
 const SIZE_VALUES = ["small", "medium", "large"] as const;
+const CHEESE_VALUES = ["met", "zonder"] as const;
 
 function isPasta(it: CartItem) {
   const cat = (it as any)?.category;
-  return typeof cat === "string" && cat.toLowerCase() === "pasta";
+  if (typeof cat !== "string") return false;
+  const low = cat.toLowerCase();
+  return low === "pasta" || low === "pasta_special"; // uitgebreid
 }
 function hasValidTimeslot(it: CartItem) {
   const s = (it as any)?.timeslot;
@@ -34,6 +37,14 @@ function saucesArray(it: CartItem): string[] {
 function hasValidSauces(it: CartItem) {
   const arr = saucesArray(it);
   return arr.length >= 1 && arr.length <= 2;
+}
+function hasValidCheese(it: CartItem) {
+  const ch = String((it as any)?.cheese || "").toLowerCase();
+  return (CHEESE_VALUES as readonly string[]).includes(ch as any);
+}
+function cheeseLabel(it: CartItem) {
+  const ch = String((it as any)?.cheese || "").toLowerCase();
+  return ch === "met" ? "met" : ch === "zonder" ? "zonder" : "";
 }
 function cap(s: string) {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
@@ -74,7 +85,12 @@ export default function Cart() {
     () =>
       items.filter((it) => {
         if (!isPasta(it)) return false;
-        return !(hasValidTimeslot(it) && hasValidSize(it) && hasValidSauces(it));
+        return !(
+          hasValidTimeslot(it) &&
+          hasValidSize(it) &&
+          hasValidSauces(it) &&
+          hasValidCheese(it)
+        );
       }),
     [items]
   );
@@ -142,7 +158,9 @@ export default function Cart() {
                   const slotOk = hasValidTimeslot(it);
                   const sizeOk = hasValidSize(it);
                   const saucesOk = hasValidSauces(it);
+                  const cheeseOk = hasValidCheese(it);
                   const sauces = saucesArray(it);
+                  const cheeseTxt = cheeseLabel(it);
 
                   return (
                     <li
@@ -194,7 +212,18 @@ export default function Cart() {
                                 </span>
                               )}
 
-                              {(!slotOk || !sizeOk || !saucesOk) && (
+                              {/* Kaas */}
+                              {cheeseOk ? (
+                                <span className="inline-flex items-center rounded-md bg-white/5 text-slate-200 ring-1 ring-white/10 px-2 py-1 text-xs font-medium">
+                                  Kaas: {cheeseTxt}
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center rounded-md bg-rose-500/10 text-rose-200 ring-1 ring-rose-400/30 px-2 py-1 text-xs">
+                                  Kies met of zonder kaas
+                                </span>
+                              )}
+
+                              {(!slotOk || !sizeOk || !saucesOk || !cheeseOk) && (
                                 <div className="pt-1">
                                   <button
                                     type="button"
@@ -272,6 +301,7 @@ export default function Cart() {
                         if (!hasValidTimeslot(it)) parts.push("tijdslot");
                         if (!hasValidSize(it)) parts.push("maat");
                         if (!hasValidSauces(it)) parts.push("sauzen (1–2)");
+                        if (!hasValidCheese(it)) parts.push("kaas");
                         return (
                           <li key={it.addedAt}>
                             {it.name}: ontbreekt {parts.join(", ")}
@@ -363,7 +393,7 @@ function TrashIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path
-        d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2m1 0-1 12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 7"
+        d="M4 7h16M9 7V5a2 2 0 0 1 2-2h2a 2 2 0 0 1 2 2v2m1 0-1 12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 7"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"

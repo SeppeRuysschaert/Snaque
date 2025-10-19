@@ -14,6 +14,7 @@ const {
 
 const PASTA_SLOTS = new Set(["11:30", "12:00", "12:30", "13:00"]);
 const SIZE_SET = new Set(["small", "medium", "large"]);
+const CHEESE_SET = new Set(["met", "zonder"]);
 
 export async function POST(req: Request) {
   try {
@@ -46,12 +47,19 @@ export async function POST(req: Request) {
             { status: 400 }
           );
         }
+        // ✅ Kaas verplicht (met/zonder) voor pasta & pasta_special
+        const ch = String(it.cheese || "").toLowerCase();
+        if (!CHEESE_SET.has(ch)) {
+          return NextResponse.json(
+            { error: "Pasta vereist een keuze voor kaas: met of zonder" },
+            { status: 400 }
+          );
+        }
       }
 
+      // Sauzen enkel voor gewone pasta (niet specials)
       if (cat === "pasta") {
-        const sauces = Array.isArray(it.sauces)
-          ? it.sauces.filter(Boolean)
-          : [];
+        const sauces = Array.isArray(it.sauces) ? it.sauces.filter(Boolean) : [];
         if (sauces.length < 1 || sauces.length > 2) {
           return NextResponse.json(
             { error: "Kies 1 of 2 sauzen voor pasta" },
@@ -68,43 +76,35 @@ export async function POST(req: Request) {
     // Tekstregels per item
     const lines = items.map((it: any) => {
       const qty = it.qty ?? 1;
-      const removed = it.removed?.length
-        ? ` | Weglaten: ${it.removed.join(", ")}`
-        : "";
+      const removed = it.removed?.length ? ` | Weglaten: ${it.removed.join(", ")}` : "";
       const note = it.note ? ` | Opmerking: ${it.note}` : "";
       const cat = String(it.category || "").toLowerCase();
-      const isPasta = cat === "pasta";
+      const isPasta = cat === "pasta"; // sauzen enkel voor gewone pasta
 
       const slot = it.timeslot ? ` | Timeslot: ${it.timeslot}` : "";
       const size = it.size
-        ? ` | Maat: ${String(it.size)
-            .toLowerCase()
-            .replace(/^./, (c: string) => c.toUpperCase())}`
+        ? ` | Maat: ${String(it.size).toLowerCase().replace(/^./, (c: string) => c.toUpperCase())}`
         : "";
       const sauces =
         isPasta && Array.isArray(it.sauces) && it.sauces.length
           ? ` | Sauzen: ${it.sauces.join(" + ")}`
           : "";
-
-      // ✅ Broodtype (indien aanwezig)
       const bread = it.bread
-        ? ` | Brood: ${
-            String(it.bread).toLowerCase() === "bruin" ? "Bruin" : "Wit"
-          }`
+        ? ` | Brood: ${String(it.bread).toLowerCase() === "bruin" ? "Bruin" : "Wit"}`
         : "";
+      const cheese =
+        it.cheese && CHEESE_SET.has(String(it.cheese).toLowerCase())
+          ? ` | Kaas: ${String(it.cheese).toLowerCase() === "met" ? "met" : "zonder"}`
+          : "";
 
-      return `• ${it.name} × ${qty} — € ${(it.price * qty).toFixed(
-        2
-      )}${slot}${size}${sauces}${bread}${removed}${note}`;
+      return `• ${it.name} × ${qty} — € ${(it.price * qty).toFixed(2)}${slot}${size}${sauces}${cheese}${bread}${removed}${note}`;
     });
 
     const text = `Nieuwe bestelling via Snaque
 
 Klant: ${customer.name}
 Tel.: ${customer.phone}
-${customer.note ? `Notitie: ${customer.note}\n` : ""}Datum/tijd: ${
-      placedAt ?? new Date().toISOString()
-    }
+${customer.note ? `Notitie: ${customer.note}\n` : ""}Datum/tijd: ${placedAt ?? new Date().toISOString()}
 
 Items:
 ${lines.join("\n")}
@@ -117,11 +117,7 @@ Totaal: € ${Number(total).toFixed(2)}
         <h2>Nieuwe bestelling via Snaque</h2>
         <p><strong>Klant:</strong> ${escapeHtml(customer.name)}<br/>
            <strong>Tel.:</strong> ${escapeHtml(customer.phone)}<br/>
-           ${
-             customer.note
-               ? `<strong>Notitie:</strong> ${escapeHtml(customer.note)}<br/>`
-               : ""
-           }
+           ${customer.note ? `<strong>Notitie:</strong> ${escapeHtml(customer.note)}<br/>` : ""}
            <strong>Datum/tijd:</strong> ${placedAt ?? new Date().toISOString()}
         </p>
         <h3>Items</h3>
@@ -129,47 +125,38 @@ Totaal: € ${Number(total).toFixed(2)}
           ${items
             .map((it: any) => {
               const qty = it.qty ?? 1;
-              const removed = it.removed?.length
-                ? ` | Weglaten: ${it.removed.join(", ")}`
-                : "";
-              const note = it.note
-                ? ` | Opmerking: ${escapeHtml(it.note)}`
-                : "";
+              const removed = it.removed?.length ? ` | Weglaten: ${it.removed.join(", ")}` : "";
+              const note = it.note ? ` | Opmerking: ${escapeHtml(it.note)}` : "";
               const cat = String(it.category || "").toLowerCase();
-              const isPasta = cat === "pasta";
+              const isPasta = cat === "pasta"; // sauzen enkel voor gewone pasta
 
               const slot = it.timeslot ? ` | Timeslot: ${it.timeslot}` : "";
               const size = it.size
-                ? ` | Maat: ${String(it.size)
-                    .toLowerCase()
-                    .replace(/^./, (c) => c.toUpperCase())}`
+                ? ` | Maat: ${String(it.size).toLowerCase().replace(/^./, (c) => c.toUpperCase())}`
                 : "";
               const sauces =
                 isPasta && Array.isArray(it.sauces) && it.sauces.length
                   ? ` | Sauzen: ${it.sauces.join(" + ")}`
                   : "";
-
-              // ✅ Broodtype (indien aanwezig)
               const bread = it.bread
-                ? ` | Brood: ${
-                    String(it.bread).toLowerCase() === "bruin" ? "Bruin" : "Wit"
-                  }`
+                ? ` | Brood: ${String(it.bread).toLowerCase() === "bruin" ? "Bruin" : "Wit"}`
                 : "";
+              const cheese =
+                it.cheese && CHEESE_SET.has(String(it.cheese).toLowerCase())
+                  ? ` | Kaas: ${String(it.cheese).toLowerCase() === "met" ? "met" : "zonder"}`
+                  : "";
 
               const safeName = escapeHtml(it.name);
               const safeRemoved = escapeHtml(removed);
               const safeSlot = escapeHtml(slot);
               const safeSize = escapeHtml(size);
               const safeSauces = escapeHtml(sauces);
+              const safeCheese = escapeHtml(cheese);
               const safeBread = escapeHtml(bread);
 
-              return `<li>${safeName} × ${qty} — € ${(it.price * qty).toFixed(
-                2
-              )}${safeSlot}${safeSize}${safeSauces}${safeBread}${safeRemoved}${note}</li>`;
+              return `<li>${safeName} × ${qty} — € ${(it.price * qty).toFixed(2)}${safeSlot}${safeSize}${safeSauces}${safeCheese}${safeBread}${safeRemoved}${note}</li>`;
             })
             .join("")}
-
-
         </ul>
         <p><strong>Totaal:</strong> € ${Number(total).toFixed(2)}</p>
       </div>
@@ -180,10 +167,7 @@ Totaal: € ${Number(total).toFixed(2)}
       host: SMTP_HOST,
       port: Number(SMTP_PORT),
       secure: SMTP_SECURE === "true",
-      auth:
-        SMTP_USER && SMTP_PASS
-          ? { user: SMTP_USER, pass: SMTP_PASS }
-          : undefined,
+      auth: SMTP_USER && SMTP_PASS ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
     });
 
     await transporter.sendMail({
@@ -197,10 +181,7 @@ Totaal: € ${Number(total).toFixed(2)}
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     console.error("Order email error", e);
-    return NextResponse.json(
-      { error: "Serverfout bij verzenden" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Serverfout bij verzenden" }, { status: 500 });
   }
 }
 
@@ -209,8 +190,6 @@ function escapeHtml(s: string) {
   return String(s).replace(
     /[&<>\"']/g,
     (m) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[
-        m
-      ]!)
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[m]!)
   );
 }

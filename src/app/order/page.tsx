@@ -27,13 +27,16 @@ function saucesArray(it: CartItem): string[] {
 function cap(s: string) {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 }
+function cheeseLabel(it: CartItem) {
+  const ch = String((it as any)?.cheese || "").toLowerCase();
+  return ch === "met" ? "met" : ch === "zonder" ? "zonder" : "";
+}
 
 export default function Order() {
   const router = useRouter();
   const [items, setItems] = useState<CartItem[]>([]);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [note, setNote] = useState("");
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +64,7 @@ export default function Order() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          customer: { name: name.trim(), phone: phone.trim(), note: note.trim() || undefined },
+          customer: { name: name.trim(), phone: phone.trim() }, // opmerking weggelaten
           items,
           total,
           placedAt: new Date().toISOString(),
@@ -80,12 +83,7 @@ export default function Order() {
   if (done) {
     return (
       <main className="isolate mx-auto max-w-3xl px-4 py-6 md:py-10 text-slate-100">
-        <section
-          className="
-            rounded-3xl border border-white/10 ring-1 ring-black/20 shadow-xl
-            bg-white/5 backdrop-blur
-          "
-        >
+        <section className="rounded-3xl border border-white/10 ring-1 ring-black/20 shadow-xl bg-white/5 backdrop-blur">
           <div className="p-6 md:p-8">
             <h1 className="text-3xl md:text-4xl font-semibold" style={{ color: "#f4f5d3" }}>
               Bedankt!
@@ -94,16 +92,10 @@ export default function Order() {
               Je bestelling is verstuurd. We nemen contact op via jouw telefoonnummer.
             </p>
             <div className="mt-5 flex gap-2">
-              <button
-                className="btn-ghost"
-                onClick={() => router.push("/broodjes")}
-              >
+              <button className="btn-ghost" onClick={() => router.push("/broodjes")}>
                 Verder bestellen
               </button>
-              <button
-                className="btn-ghost"
-                onClick={() => router.push("/")}
-              >
+              <button className="btn-ghost" onClick={() => router.push("/")}>
                 Terug naar home
               </button>
             </div>
@@ -115,12 +107,7 @@ export default function Order() {
 
   return (
     <main className="isolate mx-auto max-w-4xl px-4 py-6 md:py-10 text-slate-100">
-      <section
-        className="
-          rounded-3xl border border-white/10 ring-1 ring-black/20 shadow-xl
-          bg-white/5 backdrop-blur
-        "
-      >
+      <section className="rounded-3xl border border-white/10 ring-1 ring-black/20 shadow-xl bg-white/5 backdrop-blur">
         <div className="p-6 md:p-8">
           <header className="mb-6">
             <h1
@@ -132,7 +119,6 @@ export default function Order() {
             <p className="mt-1 text-sm text-slate-400">
               Vul je gegevens in en bevestig je bestelling.
             </p>
-            {/* subtiele beige accentlijn */}
             <div className="mt-4 h-1 w-full rounded-full bg-gradient-to-r from-[#f4f5d3]/40 via-transparent to-transparent" />
           </header>
 
@@ -146,6 +132,7 @@ export default function Order() {
                 {items.map((it) => {
                   const pasta = isPasta(it);
                   const sauces = saucesArray(it);
+                  const cheese = cheeseLabel(it);
                   return (
                     <li key={it.addedAt} className="py-2 flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -178,17 +165,18 @@ export default function Order() {
                               Sauzen: {sauces.join(" + ")}
                             </span>
                           )}
+                          {/* 🧀 Kaas-badge (alleen tonen als aanwezig) */}
+                          {pasta && cheese && (
+                            <span className="inline-flex items-center rounded-md bg-white/5 text-slate-200 ring-1 ring-white/10 px-2 py-0.5 font-medium">
+                              Kaas: {cheese}
+                            </span>
+                          )}
                         </div>
 
-                        {/* weglaten/opmerking */}
-                        {(it as any).removed?.length > 0 || (it as any).note ? (
+                        {/* weglaten (opmerking is verwijderd) */}
+                        {(it as any).removed?.length > 0 ? (
                           <p className="mt-1 text-sm text-slate-400">
-                            {(it as any).removed?.length > 0
-                              ? `Weglaten: ${(it as any).removed.join(", ")}`
-                              : null}
-                            {(it as any).note
-                              ? `${(it as any).removed?.length ? " — " : ""}Opmerking: ${(it as any).note}`
-                              : null}
+                            Weglaten: {(it as any).removed.join(", ")}
                           </p>
                         ) : null}
                       </div>
@@ -208,7 +196,7 @@ export default function Order() {
             </div>
           </div>
 
-          {/* Gegevens */}
+          {/* Gegevens (zonder opmerking) */}
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-slate-300 mb-1">Naam</label>
@@ -227,16 +215,6 @@ export default function Order() {
                 inputMode="tel"
                 className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#f4f5d3] focus:border-white/20"
                 placeholder="bv. 0470 12 34 56"
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <label className="block text-sm text-slate-300 mb-1">Opmerking (optioneel)</label>
-              <textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                rows={3}
-                className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#f4f5d3] focus:border-white/20"
-                placeholder=""
               />
             </div>
           </div>

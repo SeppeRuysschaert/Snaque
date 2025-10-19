@@ -1,7 +1,7 @@
 // lib/cart.ts
 "use client";
 
-export const CART_KEY = "cart:v1";
+export const CART_KEY = "cart:v2"; // schema bump
 
 export type CartItem = {
   id: number;
@@ -9,7 +9,7 @@ export type CartItem = {
   price: number;
   qty?: number;
   removed?: string[];
-  note?: string;
+  note?: string; // blijft beschikbaar voor toekomstige vrije opmerkingen
   addedAt?: number;
 
   category?: string;
@@ -17,18 +17,51 @@ export type CartItem = {
   size?: "small" | "medium" | "large";
   sauces?: string[];
 
-  bread?: "wit" | "bruin"; 
+  bread?: "wit" | "bruin";
+  cheese?: "met" | "zonder"; // NIEUW
 };
 
+// --- interne helpers ---
+const LEGACY_CART_KEY = "cart:v1";
 
+function parseJSON<T>(raw: string | null): T | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return null;
+  }
+}
+
+function migrateV1ToV2(items: CartItem[]): CartItem[] {
+  return items.map((it) => {
+    if (!it.cheese) {
+      const n = (it.note ?? "").toLowerCase();
+      if (n.includes("zonder kaas")) return { ...it, cheese: "zonder" };
+      if (n.includes("met kaas")) return { ...it, cheese: "met" };
+    }
+    return it;
+  });
+}
+
+// --- public API ---
 export function readCart(): CartItem[] {
   if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(CART_KEY);
-    return raw ? (JSON.parse(raw) as CartItem[]) : [];
-  } catch {
-    return [];
+
+  // Probeer v2
+  const v2 = parseJSON<CartItem[]>(localStorage.getItem(CART_KEY));
+  if (Array.isArray(v2)) return v2;
+
+  // Val terug op v1 en migreer on-the-fly
+  const v1 = parseJSON<CartItem[]>(localStorage.getItem(LEGACY_CART_KEY));
+  if (Array.isArray(v1)) {
+    const migrated = migrateV1ToV2(v1);
+    // direct wegschrijven naar v2 zodat navbar/listeners de juiste key gebruiken
+    writeCart(migrated);
+    return migrated;
   }
+
+  return [];
 }
 
 function writeCart(items: CartItem[]) {
