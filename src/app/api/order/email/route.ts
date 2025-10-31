@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   try {
     const { customer, items, total, placedAt } = await req.json();
 
-    // Basisvalidatie
+    // Basisvalidatie (bedrijf blijft optioneel)
     if (
       !customer?.name ||
       !customer?.phone ||
@@ -69,10 +69,6 @@ export async function POST(req: Request) {
       }
     }
 
-    // (Optioneel) totaal herberekenen server-side:
-    // const serverTotal = items.reduce((acc: number, it: any) => acc + (Number(it.price) * (it.qty ?? 1)), 0);
-    // if (Math.abs(serverTotal - Number(total)) > 0.01) { /* afwijking afhandelen */ }
-
     // Tekstregels per item
     const lines = items.map((it: any) => {
       const qty = it.qty ?? 1;
@@ -100,11 +96,18 @@ export async function POST(req: Request) {
       return `• ${it.name} × ${qty} — € ${(it.price * qty).toFixed(2)}${slot}${size}${sauces}${cheese}${bread}${removed}${note}`;
     });
 
+    // 👇 Nieuw: bedrijfsinfo in plain text
+    const isCompany = !!customer.isCompany;
+    const companyLine = customer.companyName ? `Bedrijf: ${customer.companyName}\n` : "";
+    const companyFlag = `Zakelijk: ${isCompany ? "ja" : "nee"}\n`;
+
     const text = `Nieuwe bestelling via Snaque
 
 Klant: ${customer.name}
 Tel.: ${customer.phone}
-${customer.note ? `Notitie: ${customer.note}\n` : ""}Datum/tijd: ${placedAt ?? new Date().toISOString()}
+${companyFlag}${companyLine}${customer.note ? `Notitie: ${customer.note}\n` : ""}Datum/tijd: ${
+      placedAt ?? new Date().toISOString()
+    }
 
 Items:
 ${lines.join("\n")}
@@ -112,13 +115,17 @@ ${lines.join("\n")}
 Totaal: € ${Number(total).toFixed(2)}
 `;
 
+    // 👇 Nieuw: bedrijfsinfo in HTML
     const html = `
       <div style="font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;">
         <h2>Nieuwe bestelling via Snaque</h2>
-        <p><strong>Klant:</strong> ${escapeHtml(customer.name)}<br/>
-           <strong>Tel.:</strong> ${escapeHtml(customer.phone)}<br/>
-           ${customer.note ? `<strong>Notitie:</strong> ${escapeHtml(customer.note)}<br/>` : ""}
-           <strong>Datum/tijd:</strong> ${placedAt ?? new Date().toISOString()}
+        <p>
+          <strong>Klant:</strong> ${escapeHtml(customer.name)}<br/>
+          <strong>Tel.:</strong> ${escapeHtml(customer.phone)}<br/>
+          <strong>Zakelijk:</strong> ${isCompany ? "ja" : "nee"}<br/>
+          ${customer.companyName ? `<strong>Bedrijf:</strong> ${escapeHtml(customer.companyName)}<br/>` : ""}
+          ${customer.note ? `<strong>Notitie:</strong> ${escapeHtml(customer.note)}<br/>` : ""}
+          <strong>Datum/tijd:</strong> ${placedAt ?? new Date().toISOString()}
         </p>
         <h3>Items</h3>
         <ul>
@@ -173,7 +180,10 @@ Totaal: € ${Number(total).toFixed(2)}
     await transporter.sendMail({
       from: ORDER_EMAIL_FROM || SMTP_USER,
       to: ORDER_EMAIL_TO,
-      subject: `Nieuwe bestelling — ${customer.name}`,
+      // 👇 Nieuw: toon bedrijfsnaam in subject indien beschikbaar
+      subject: `Nieuwe bestelling — ${customer.name}${
+        customer.companyName ? ` (${customer.companyName})` : ""
+      }`,
       text,
       html,
     });

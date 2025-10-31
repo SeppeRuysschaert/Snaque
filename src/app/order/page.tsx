@@ -37,6 +37,11 @@ export default function Order() {
   const [items, setItems] = useState<CartItem[]>([]);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+
+  // ▶️ NIEUW: bedrijfsbestelling + (optionele) bedrijfsnaam
+  const [isCompany, setIsCompany] = useState(false);
+  const [companyName, setCompanyName] = useState("");
+
   const [sending, setSending] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +56,7 @@ export default function Order() {
     [items]
   );
 
+  // Validatie blijft ongewijzigd: bedrijfsnaam is optioneel, ook bij bedrijfsbestelling
   const valid =
     name.trim().length >= 2 &&
     /^[0-9 +().-]{8,}$/.test(phone.trim()) &&
@@ -60,11 +66,18 @@ export default function Order() {
     setError(null);
     setSending(true);
     try {
+      const baseCustomer = {
+        name: name.trim(),
+        phone: phone.trim(),
+        ...(isCompany ? { isCompany: true } : {}),
+        ...(companyName.trim() ? { companyName: companyName.trim() } : {}),
+      };
+
       const res = await fetch("/api/order/email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          customer: { name: name.trim(), phone: phone.trim() }, // opmerking weggelaten
+          customer: baseCustomer, // opmerking weggelaten
           items,
           total,
           placedAt: new Date().toISOString(),
@@ -142,14 +155,12 @@ export default function Order() {
 
                         {/* badges/extra info */}
                         <div className="mt-1 flex flex-wrap gap-1.5 text-xs">
-                          {/* broodtype */}
                           {(it as any).bread && (
                             <span className="inline-flex items-center rounded-md bg-white/5 text-slate-200 ring-1 ring-white/10 px-2 py-0.5 font-medium">
                               Brood: {String((it as any).bread).toLowerCase() === "bruin" ? "Bruin" : "Wit"}
                             </span>
                           )}
 
-                          {/* pasta details */}
                           {pasta && hasTimeslot(it) && (
                             <span className="inline-flex items-center rounded-md bg-white/5 text-slate-200 ring-1 ring-white/10 px-2 py-0.5 font-medium">
                               Timeslot: {(it as any).timeslot}
@@ -165,7 +176,6 @@ export default function Order() {
                               Sauzen: {sauces.join(" + ")}
                             </span>
                           )}
-                          {/* 🧀 Kaas-badge (alleen tonen als aanwezig) */}
                           {pasta && cheese && (
                             <span className="inline-flex items-center rounded-md bg-white/5 text-slate-200 ring-1 ring-white/10 px-2 py-0.5 font-medium">
                               Emmental: {cheese}
@@ -173,7 +183,6 @@ export default function Order() {
                           )}
                         </div>
 
-                        {/* weglaten (opmerking is verwijderd) */}
                         {(it as any).removed?.length > 0 ? (
                           <p className="mt-1 text-sm text-slate-400">
                             Weglaten: {(it as any).removed.join(", ")}
@@ -181,7 +190,6 @@ export default function Order() {
                         ) : null}
                       </div>
 
-                      {/* Prijsbadge (neutraal) */}
                       <div className="inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold text-slate-100 ring-1 ring-white/12 bg-white/8">
                         {fmt(it.price * (it.qty ?? 1))}
                       </div>
@@ -196,7 +204,7 @@ export default function Order() {
             </div>
           </div>
 
-          {/* Gegevens (zonder opmerking) */}
+          {/* Gegevens + bedrijfsoptie */}
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm text-slate-300 mb-1">Naam</label>
@@ -217,6 +225,34 @@ export default function Order() {
                 placeholder="bv. 0470 12 34 56"
               />
             </div>
+
+            {/* ▶️ NIEUW: schakelaar 'Bestellen als bedrijf' */}
+            <div className="sm:col-span-2 flex items-center gap-3 mt-1">
+              <input
+                id="isCompany"
+                type="checkbox"
+                checked={isCompany}
+                onChange={(e) => setIsCompany(e.target.checked)}
+                className="h-4 w-4 rounded border-white/10 bg-white/5 text-[#f4f5d3] focus:ring-2 focus:ring-[#f4f5d3]"
+              />
+              <label htmlFor="isCompany" className="text-sm text-slate-300 select-none">
+                Bestellen als bedrijf
+              </label>
+            </div>
+
+            {/* ▶️ NIEUW: optioneel veld Bedrijfsnaam (alleen zichtbaar als bedrijf) */}
+            {isCompany && (
+              <div className="sm:col-span-2">
+                <label className="block text-sm text-slate-300 mb-1">
+                  Bedrijfsnaam <span className="text-slate-500">(optioneel)</span>
+                </label>
+                <input
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  className="w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#f4f5d3] focus:border-white/20"
+                />
+              </div>
+            )}
           </div>
 
           {error && <p className="mt-4 text-sm text-rose-300">{error}</p>}
