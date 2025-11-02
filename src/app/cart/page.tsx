@@ -22,30 +22,49 @@ function isPasta(it: CartItem) {
   const low = cat.toLowerCase();
   return low === "pasta" || low === "pasta_special"; // uitgebreid
 }
+
+function isSpecialPasta(it: CartItem) {
+  const cat = (it as any)?.category;
+  return typeof cat === "string" && cat.toLowerCase() === "pasta_special";
+}
+
+function requiresSauces(it: CartItem) {
+  // Alleen 'gewone' pasta vereist 1–2 sauzen; special niet
+  return isPasta(it) && !isSpecialPasta(it);
+}
+
 function hasValidTimeslot(it: CartItem) {
   const s = (it as any)?.timeslot;
   return !!s && (SLOT_VALUES as readonly string[]).includes(s);
 }
+
 function hasValidSize(it: CartItem) {
   const sz = String((it as any)?.size || "").toLowerCase();
   return (SIZE_VALUES as readonly string[]).includes(sz);
 }
+
 function saucesArray(it: CartItem): string[] {
   const arr = (it as any)?.sauces;
   return Array.isArray(arr) ? arr.filter(Boolean) : [];
 }
+
 function hasValidSauces(it: CartItem) {
+  // Specials hoeven geen saus te kiezen
+  if (!requiresSauces(it)) return true;
   const arr = saucesArray(it);
   return arr.length >= 1 && arr.length <= 2;
 }
+
 function hasValidCheese(it: CartItem) {
   const ch = String((it as any)?.cheese || "").toLowerCase();
   return (CHEESE_VALUES as readonly string[]).includes(ch as any);
 }
+
 function cheeseLabel(it: CartItem) {
   const ch = String((it as any)?.cheese || "").toLowerCase();
   return ch === "met" ? "met" : ch === "zonder" ? "zonder" : "";
 }
+
 function cap(s: string) {
   return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 }
@@ -155,6 +174,7 @@ export default function Cart() {
               <ul className="space-y-4">
                 {items.map((it) => {
                   const pasta = isPasta(it);
+                  const special = isSpecialPasta(it);
                   const slotOk = hasValidTimeslot(it);
                   const sizeOk = hasValidSize(it);
                   const saucesOk = hasValidSauces(it);
@@ -202,7 +222,11 @@ export default function Cart() {
                               )}
 
                               {/* Sauzen */}
-                              {saucesOk ? (
+                              {special ? (
+                                <span className="inline-flex items-center rounded-md bg-white/5 text-slate-200 ring-1 ring-white/10 px-2 py-1 text-xs font-medium">
+                                  Sauzen: niet nodig
+                                </span>
+                              ) : saucesOk ? (
                                 <span className="inline-flex items-center rounded-md bg-white/5 text-slate-200 ring-1 ring-white/10 px-2 py-1 text-xs font-medium">
                                   Sauzen: {sauces.join(" + ")}
                                 </span>
@@ -300,10 +324,10 @@ export default function Cart() {
                         const parts: string[] = [];
                         if (!hasValidTimeslot(it)) parts.push("tijdslot");
                         if (!hasValidSize(it)) parts.push("maat");
-                        if (!hasValidSauces(it)) parts.push("sauzen (1–2)");
+                        if (requiresSauces(it) && !hasValidSauces(it)) parts.push("sauzen (1–2)");
                         if (!hasValidCheese(it)) parts.push("kaas");
                         return (
-                          <li key={it.addedAt}>
+                          <li key={(it as any).addedAt}>
                             {it.name}: ontbreekt {parts.join(", ")}
                           </li>
                         );
